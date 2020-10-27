@@ -34,14 +34,17 @@ export default function App() {
   });
 
   const addLocation = () => {
-    if(textLatitude && textLongitude) 
-      setTableData(tableData.concat([[parseFloat(textLatitude), parseFloat(textLongitude)]]));
-    else setTableData(tableData.concat([[latitude, longitude]]))
+     setTableData(tableData.concat([[latitude, longitude]]))
+  }
+
+  const addManualLocation = () => {
+    setTableData(tableData.concat([[parseFloat(textLatitude), parseFloat(textLongitude)]]));
   }
 
   const sendPolygon = () => {
     let polygon = {...nowforcePolygonFormat};
     polygon.OrganizationPolygonItem.PolygonName = polyName;
+    polygon.OrganizationPolygonItem.CoordinatesFormated = [];
     tableData.forEach(location => {
       let coords = {
         Lat: location[0],
@@ -50,6 +53,7 @@ export default function App() {
       polygon.OrganizationPolygonItem.CoordinatesFormated.push(coords);
     })
     polygon.OrganizationPolygonItem.CoordinatesFormated.push(polygon.OrganizationPolygonItem.CoordinatesFormated[0]);
+    console.log(polygon);
     axios({
       method: 'post',
       url: 'http://lb.nowforce.com/api/en-us/Polygon/Upsert/json/2584/2584',
@@ -57,12 +61,14 @@ export default function App() {
           SnapAuthorization: 'Basic MTIzNDYzMDgyNw==Xw==HG5rNJXiEuvFDYhPF2fWOQ=='
       },
       data: polygon
-  }).then(response => Alert.alert(`${response.data.OrganizationPolygonItem.PolygonName} added`))
-  .catch(error => Alert.alert('Error, try again'));    
+    }).then(response => Alert.alert(`${response.data.OrganizationPolygonItem.PolygonName} added`))
+    .catch(error => Alert.alert('Error, try again'));   
   }
 
   const deletePolygon = () => {
     setTableData([]);
+    setTextLatitude(null);
+    setTextLongitude(null);
   }
 
   return (
@@ -73,7 +79,7 @@ export default function App() {
         <View style={styles.header}> 
             <Image style={styles.pikud} source={require('./assets/pikud-logo.png')}></Image>
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>הזנת פוליגון זיהום</Text>
+              <Text style={styles.title}>הזנת פוליגון טיהור</Text>
               <Text style={styles.subtitle}>לשרתי nowforce</Text>
             </View>
             <Image style={styles.gasMask} source={require('./assets/gas-mask.png')}></Image>
@@ -114,7 +120,7 @@ export default function App() {
           <Dialog.Input label='קו רוחב' style={styles.input} onChangeText={text => setTextLatitude(text)}></Dialog.Input>
           <Dialog.Input label='קו אורך' style={styles.input} onChangeText={text => setTextLongitude(text)}></Dialog.Input>
           <Dialog.Button label="ביטול" onPress={() => setManualVisible(false)} />
-          <Dialog.Button label="שמור" onPress={() => { addLocation(); setManualVisible(false); }} disabled={!textLatitude || !textLongitude} />
+          <Dialog.Button label="שמור" onPress={() => { addManualLocation(); setManualVisible(false); }} disabled={!textLatitude || !textLongitude} />
       </Dialog.Container>
 
     </View>
